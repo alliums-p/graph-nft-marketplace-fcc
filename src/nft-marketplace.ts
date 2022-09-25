@@ -1,6 +1,5 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import {
-  NFTMarketplace,
   ItemBought as ItemBoughtEvent,
   ItemCanceled as ItemCanceledEvent,
   ItemListed as ItemListedEvent
@@ -17,8 +16,12 @@ export function handleItemBought(event: ItemBoughtEvent): void {
   // ItemBoughtEvent: Just the raw event
   // ItemBoughtObject: What we save
 
-  let itemBought = ItemBought.load(getIdFromEventParams(event.params.tokenId, event.params.nftAddress))
-  let activeItem = ActiveItem.load(getIdFromEventParams(event.params.tokenId, event.params.nftAddress))
+  let itemBought = ItemBought.load(
+    getIdFromEventParams(event.params.tokenId, event.params.nftAddress)
+  )
+  let activeItem = ActiveItem.load(
+    getIdFromEventParams(event.params.tokenId, event.params.nftAddress)
+  )
 
   if (!itemBought) {
     itemBought = new ItemBought(
@@ -34,13 +37,35 @@ export function handleItemBought(event: ItemBoughtEvent): void {
   activeItem!.save()
 }
 
-export function handleItemCanceled(event: ItemCanceledEvent): void {}
+export function handleItemCanceled(event: ItemCanceledEvent): void {
+  let itemCanceled = ItemCanceled.load(
+    getIdFromEventParams(event.params.tokenId, event.params.nftAddress)
+  )
+  let activeItem = ActiveItem.load(
+    getIdFromEventParams(event.params.tokenId, event.params.nftAddress)
+  )
+  if(!itemCanceled) {
+    itemCanceled = new ItemCanceled(
+      getIdFromEventParams(event.params.tokenId, event.params.nftAddress)
+    )
+  }
+
+  itemCanceled.seller = event.params.seller
+  itemCanceled.nftAddress = event.params.nftAddress
+  itemCanceled.tokenId = event.params.tokenId
+  activeItem!.buyer = Address.fromString("0x00000000000000000000000000000000000dEaD")
+
+  itemCanceled.save()
+  activeItem!.save()
+}
 
 export function handleItemListed(event: ItemListedEvent): void {
   let itemListed = ItemListed.load(
     getIdFromEventParams(event.params.tokenId, event.params.nftAddress)
   )
-  let activeItem = ActiveItem.load(getIdFromEventParams(event.params.tokenId, event.params.nftAddress))
+  let activeItem = ActiveItem.load(
+    getIdFromEventParams(event.params.tokenId, event.params.nftAddress)
+  )
   if(!itemListed) {
     itemListed = new ItemListed(
       getIdFromEventParams(event.params.tokenId, event.params.nftAddress)
